@@ -2,12 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/styles.css">
-    <title>Portfolio</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="styles/grid_styles.css">
+    <link rel="stylesheet" href="styles/site_styles.css">
+    <title>Trifulca</title>
 </head>
 <body>
-    <h1>Trifulca</h1>
+    <div class="page">
+        <div class="row header">
+            <h1 id="title">TRIFULCA</h1>
+            <div id="options"></div>
+        </div>
+        <div id="content" class="row content">
+            <script type="text/javascript" src="trifulca_pieces.js"></script>
+            <script type="text/javascript" src="trifulca.js"></script>
+            <script type="text/javascript" src="setup.js"></script>
+            <button id="start_button" onclick="start_game();">Start Game</button>
+        </div>
+    </div>
 </body>
 </html>
 

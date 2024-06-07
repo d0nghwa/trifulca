@@ -1,0 +1,26 @@
+.grid {
+    border-collapse: collapse;
+    height: 70vh;
+    max-height: 700px;
+    min-height: 350px;
+    aspect-ratio: 5 / 7;
+}
+
+.tile {
+    height: calc(100% / 7);
+    width: 20%;
+    border: 1px solid gray;
+    aspect-ratio: 1 / 1;
+}
+
+.tile.dark {
+    background-color: darkred
+}
+
+.tile.light {
+    background-color:white;
+}
+
+.conq, .dame, .nite {
+    text-align: center;
+}
