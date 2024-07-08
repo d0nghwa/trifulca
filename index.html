@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="styles/grid_styles.css">
-    <link rel="stylesheet" href="styles/site_styles.css">
+    <link rel="stylesheet" href="./styles/grid_styles.css">
+    <link rel="stylesheet" href="./styles/site_styles.css">
     <title>Trifulca</title>
 </head>
 <body>
@@ -14,10 +14,18 @@
             <div id="options"></div>
         </div>
         <div id="content" class="row content">
-            <button id="startButton">Start Game</button>
-
-            <script type="module" src="trifulca.js"></script>
-            <script type="module" src="setup.js"></script>
+            <div id="buttonRow">
+                <button id="startButton">Start Game</button>
+            </div>
+            <div id="gameContent">
+                <div id="board">
+                    <script type="module" src="./code/trifulca.js"></script>
+                    <script type="module" src="./code/setup.js"></script>
+                </div>
+                <div id="turnIndicator">
+                    Turn
+                </div>
+            </div>
         </div>
     </div>
 </body>
