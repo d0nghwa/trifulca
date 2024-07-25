@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="./styles/grid_styles.css">
+    <link rel="stylesheet" href="./styles/game_styles.css">
     <link rel="stylesheet" href="./styles/site_styles.css">
     <title>Trifulca</title>
-    <base href="./">
 </head>
 <body>
     <div class="page">
@@ -14,21 +13,104 @@
             <h1 id="title">TRIFULCA</h1>
             <div id="options"></div>
         </div>
-        <div id="content" class="row content">
-            <div id="buttonRow">
-                <button id="startButton">Start Game</button>
-            </div>
-            <div id="gameContent">
-                <div id="board">
-                    <script type="module" src="./code/trifulca.js"></script>
-                    <script type="module" src="./code/setup.js"></script>
-                </div>
-                <div id="turnIndicator">
-                    Turn
-                </div>
+        <div id="game" class="row content">
+            <div id="coords">COORDS:</div>
+            <div id="clicked">CLICKED:</div>
+            <div id="clicked_tile">TILE:</div>
+            <div id="turn_indicator"></div>
+            <div id="board">
+                <table id="table">
+                    <tr class="border_row">
+                        <td class="border corner"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border corner"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="medium tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="table_row">
+                        <td class="border vertical"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="light tile"><div></div></td>
+                        <td class="dark tile"><div></div></td>
+                        <td class="border vertical"><div></div></td>
+                    </tr>
+                    <tr class="border_row">
+                        <td class="border corner"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border horizontal"><div></div></td>
+                        <td class="border corner"><div></div></td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
+    <script type="module" src="./src/deck.js"></script>
+    <script type="module" src="./src/trifulcaPiece.js"></script>
+    <script type="module" src="./src/trifulca.js"></script>
+    <script type="module" src="./src/trifulcaUIElements.js"></script>
+    <script type="module" src="./src/trifulcaUI.js"></script>
+    <script type="module" src="./index.js"></script>
 </body>
 </html>
 

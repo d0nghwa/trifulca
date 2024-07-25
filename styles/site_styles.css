@@ -32,6 +32,7 @@ body {
     flex-flow: column;
 }
 
-#start_button {
+#button {
     margin: 10px;
+    padding-bottom: 10px;
 }
