@@ -1,6 +1,21 @@
-import { Trifulca } from "./src/trifulca.js"
-import { cells, overlays, turnIndicator } from "./src/trifulcaUIElements.js"
-import { table, state, game, newGame, getTile, clickedTile, render } from "./src/trifulcaUI.js"
+import { renderBoard, renderMoves, resizeCanvas, board, overlays, game, newGame, getTile, clickedTile } from "./src/trifulcaUI.js"
+
+let rect = board.getBoundingClientRect();
+
+function printMousePos(event) {
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+
+    clicked.innerHTML = "CLICKED: (" + x + ", " + y + ')';
+
+    let tile = getTile(event.clientX, event.clientY);
+    clicked_tile.innerHTML = "TILE: (" + tile.r + ", " + tile.c + ')';
+}
+  
+overlays.addEventListener("click", printMousePos);
+
+let pos = board.getBoundingClientRect();
+document.getElementById('coords').innerHTML += ' (' + (pos.x - rect.left) + ', ' + (pos.y - rect.top) + ')';
 
 newGame();
 
@@ -13,20 +28,13 @@ game.placePieces([
     { type : 'NITE', position : {r: 6, c: 0}, faction : 'RED' }
 ]);
 
-render();
-table.addEventListener("click", clickedTile);
+resizeCanvas();
 
-function printMousePos(event) {
-    let x = event.clientX;
-    let y = event.clientY;
+renderBoard();
 
-    clicked.innerHTML = "CLICKED: (" + x + ", " + y + ')';
+overlays.addEventListener("click", (e) => {
+    clickedTile(e);
+    renderMoves();
+    renderBoard();
+});
 
-    let tile = getTile(x, y);
-    clicked_tile.innerHTML = "TILE: (" + tile.r + ", " + tile.c + ')';
-}
-  
-document.getElementById('table').addEventListener("click", printMousePos);
-
-let pos = table.getBoundingClientRect();
-document.getElementById('coords').innerHTML += ' (' + pos.x + ', ' + pos.y + ')';

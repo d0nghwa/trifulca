@@ -1,18 +1,28 @@
 import { Trifulca } from "./trifulca.js"
-import { cells, overlays, turnIndicator } from "./trifulcaUIElements.js"
 
 let borderSize = 10;
 
-const table = document.getElementById('table');
+const board         = document.getElementById('board');
+const piecesCanvas  = board.getContext('2d');
+
+const overlays      = document.getElementById('overlays');
+const overlayCanvas = overlays.getContext('2d');
+
+const turnIndicator = document.getElementById('turn_indicator');
+
+const MOVEABLETILE   = 'rgb(0 128 0 / 50%)';
+const BLOCKEDTILE    = 'rgb(0 0 0 / 50%)';
+const ATTACKABLETILE = 'rgb(255 0 0 / 50%)';
 
 let game;
+
 const state = {
     currPiece   : null,
     shownMoves  : null,
     clickedPos  : null
 }
 
-export { table, game, state };
+export { board, overlays, game, state };
 
 export function newGame() {
     game = new Trifulca();
@@ -26,25 +36,37 @@ export function newGame() {
  *  [row, column] format
  */
 export function getTile(mx, my) {
-    let t = table.getBoundingClientRect();
-    // position relative to top-left corner of game board
-    let gx = mx - t.x - borderSize;
-    let gy = my - t.y - borderSize;
+    let t = board.getBoundingClientRect();
+    let border = t.width / 32;
+    let tileSize = t.width * (6 / 32);
+
+    // position relative to top-left corner of grid
+    let rx = mx - t.left - border;
+    let ry = my - t.top - border;
     
-    // checks that tile within the game board is clicked
-    //
-    // NOT RESPONSIVE
-    return (gx < 0 || gx >= 300 || gy < 0 || gy >= 420) 
+    let gridWidth = t.width - 2 * border;
+    let gridHeight =  t.height - 2 * border;
+
+    return (rx < 0 || rx >= gridWidth || 
+            ry < 0 || ry >= gridHeight) 
         ? {
             r : -1,
             c : -1
         } : {
-            // dependent on ratio of tile size to border size (6:1)
-            // 
-            // NOT RESPONSIVE
-            r : Math.floor(gy / ((6 / 44) * t.height)),
-            c : Math.floor(gx / ((6 / 32) * t.width))
+            r : Math.floor(ry / tileSize),
+            c : Math.floor(rx / tileSize)
         }
+}
+
+export function getRelativePos(tile) {
+    let t = board.getBoundingClientRect();
+    let border = t.width / 32;
+    let tileSize = t.width * (6 / 32);
+    
+    return {
+        x : tile.c * tileSize + border,
+        y : tile.r * tileSize + border
+    };
 }
 
 export function clickedTile(event) {
@@ -64,24 +86,28 @@ export function clickedTile(event) {
             default :
         }
 
-        showMoves(tile);
+        setMove(tile);
 
         return;
     }
     const status = getSelectedMoveStatus(tile);
 
     const clickedPos = state.clickedPos;
+    const currPiece = state.currPiece;
     
-    hideMoves();
+    clearMove();
 
-    if (status == 'NOTSELECTED') {
-        if (piece != null && isAlly(piece)) 
-            showMoves(tile);
+    if (status == 'UNREACHABLE') {
+        if (piece == null || piece === currPiece)
+            return
+
+        if (isAlly(piece, currPiece))
+            setMove(tile);
 
         return;
     }
 
-    attemptMove(status, clickedPos, tile);
+    attemptMove(status, currPiece, tile);
 }
 
 function movesHidden() {
@@ -102,8 +128,8 @@ function isInvalidPiece(piece) {
     return 'VALID';
 }
 
-function isAlly(piece) {
-    return piece.faction == state.currPiece.faction;
+function isAlly(a, b) {
+    return a.faction === b.faction;
 }
 
 function getSelectedMoveStatus(clicked) {
@@ -111,20 +137,20 @@ function getSelectedMoveStatus(clicked) {
         if (clicked.r === move.pos.r && clicked.c === move.pos.c)
             return move.status;
     }
-    return 'NOTSELECTED';
+    return 'UNREACHABLE';
 }
 
-function attemptMove(status, oldPos, newPos) {
+function attemptMove(status, piece, newPos) {
     switch(status) {
         case 'EMPTY': {
-            movePiece(oldPos, newPos);
+            movePiece(piece, newPos);
             break;
         }
         case 'BLOCKED': {
             break;
         }
         case 'ALLY': {
-            showMoves(newPos);
+            setMove(newPos);
             break;
         }
         case 'ENEMY': {
@@ -133,70 +159,97 @@ function attemptMove(status, oldPos, newPos) {
     }
 }
 
-function showMoves(tile) {
+function setMove(tile) {
     state.clickedPos = tile;
     state.shownMoves = game.getMoves(tile);
     state.currPiece  = game.board[tile.r][tile.c];
-    
-    for (const move of state.shownMoves) {
-        let overlay = overlays[move.pos.r + 1][move.pos.c + 1];
-        switch (move.status) {
-            case 'EMPTY': {
-                setOverlay(overlay, 'moveable');
-                break;
-            }
-            case 'BLOCKED': /* blocked and ally are functionally equal */
-            case 'ALLY': {
-                setOverlay(overlay, 'unmoveable');
-                break;
-            }
-            case 'ENEMY': {
-                setOverlay(overlay, 'attackable');
-            }
-        }
-    }
 }
 
-function setOverlay(tile, type) {
-    tile.classList.add(type);
+function clearMove() {
+    state.clickedPos = null;
+    state.shownMoves = null;
+    state.currPiece  = null;
 }
 
 /**
- * Moves the current piece to the new position
- * @param {{r: number, c: number}} pos 
  * @see Trifulca.movePiece
  */
-function movePiece(oldPos, pos) {
-    game.movePiece(oldPos, pos);
-
-    render();
+function movePiece(piece, newPos) {
+    game.movePiece(piece, newPos);
 }
 
 function beginBattle() {
     // add functionality
 }
 
-function hideMoves() {
-    for (const move of state.shownMoves) {
-        overlays[move.pos.r + 1][move.pos.c + 1].className = '';
-    }
-    state.shownMoves = null;
-    state.clickedPos = null;
+/*
+ RENDERING FUNCTIONS  
+ */
+
+export function renderMoves() {
+    overlayCanvas.reset();
+
+    if (movesHidden())
+        return;
+
+    for (const move of state.shownMoves)
+        renderMove(move);
 }
 
-export function render() {
-    for (let r = 0; r < 7; r++) {
-        for (let c = 0; c < 5; c++) {
-            let piece = game.board[r][c];
-            
-            if (piece == null)
-                continue;
-            
-            let tile = cells[r][c];
-            tile.classList.add(piece.faction);
-            tile.classList.add(piece.type);
-            tile.classList.add(piece.status);
+function renderMove(move) {
+    const pos = getRelativePos(move.pos);
+
+    let t = board.getBoundingClientRect();
+    let tileSize = t.width * (6 / 32);
+
+    switch (move.status) {
+        case 'EMPTY': {
+            overlayCanvas.fillStyle = MOVEABLETILE;
+            break;
+        }
+        case 'BLOCKED': /* blocked and ally are functionally equal */
+        case 'ALLY': {
+            overlayCanvas.fillStyle = BLOCKEDTILE;
+            break;
+        }
+        case 'ENEMY': {
+            overlayCanvas.fillStyle = ATTACKABLETILE;
         }
     }
+    overlayCanvas.fillRect(pos.x, pos.y, tileSize, tileSize);
+}
+
+export function renderBoard() {
+    piecesCanvas.reset();
+
+    renderPieces(game.redPieces);
+    renderPieces(game.whitePieces);
+
     turnIndicator.innerHTML = game.turn;
+}
+
+function renderPieces(pieces) {
+    for (const piece of pieces) {
+        const pos = getRelativePos(piece.position);
+
+        let t = board.getBoundingClientRect();
+        let tileSize = t.width * (6 / 32);
+
+        const img = new Image();
+        img.src = 
+            './../backgrounds/' + piece.faction + ' ' + piece.type + '.png'
+        img.onload = () => {
+            piecesCanvas.drawImage(img, pos.x, pos.y, tileSize, tileSize);
+        }
+    }
+}
+
+export function resizeCanvas() {
+    let t = board.getBoundingClientRect();
+
+    board.width = t.width;
+    board.height = t.height;
+
+    overlays.width = t.width;
+    overlays.height = t.height;
 }

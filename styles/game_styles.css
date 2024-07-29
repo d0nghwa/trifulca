@@ -3,77 +3,31 @@
     flex-direction: column;
 }
 
+.board_display {
+    min-height: 330px;
+    aspect-ratio: 32 / 44;
+}
+
+#board_wrapper {
+    position: relative;
+    height: 80%;
+}
+
+#board, #overlays {
+    position: absolute;
+    height: 100%;
+    
+    top: 0px; 
+    left: 0px;
+}
+
 #board {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+    background-image: url(./../backgrounds/board_background.png);
+    background-size: cover;
+
+    z-index: 0;
 }
 
-#table {
-    border-collapse: collapse;
-
-    height: 440px;
-    width: 320px;
+#overlays {
+    z-index: 1;
 }
-
-.border.horizontal {
-    height: 10px;
-}
-
-.border.vertical {
-    width: 10px;
-}
-
-.border {
-    margin: 0;
-    padding: 0;
-}
-
-.tile {
-    margin: 0;
-    padding: 0;
-
-    height: 60px;
-    width: 60px;
-
-    background-size: 100%;
-}
-
-.tile.dark      { background-color: rgb(145, 41, 41) }
-.tile.light     { background-color: white; }
-.tile.medium    { background-color: #e9e9e9; }
-
-.border         { background-color: #e9e9e9;}
-
-.RED.CONQ   { background-image: url(./../backgrounds/red\ conq.png); }
-.RED.DAME   { background-image: url(./../backgrounds/red\ dame.png); }
-.RED.NITE   { background-image: url(./../backgrounds/red\ nite.png); }
-.WHITE.CONQ { background-image: url(./../backgrounds/white\ conq.png); }
-.WHITE.DAME { background-image: url(./../backgrounds/white\ dame.png); }
-.WHITE.NITE { background-image: url(./../backgrounds/white\ nite.png); }
-
-.moveable {
-    width: 100%;
-    height: 100%;
-
-    background: green;
-    opacity: 50%;
-}
-
-.unmoveable {
-    width: 100%;
-    height: 100%;
-
-    background: black;
-    opacity: 50%;
-}
-
-.attackable {
-    width: 100%;
-    height: 100%;
-
-    background: red;
-    opacity: 50%;
-}
-

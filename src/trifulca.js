@@ -19,7 +19,7 @@ export class Trifulca {
         this.cols = 5;
 
         /**
-         * An array of all faction pieces, along with their status
+         * An array of all faction pieces
          */
         this.redPieces = [];
         this.whitePieces = [];
@@ -184,10 +184,18 @@ export class Trifulca {
         return support;
     }
 
-    movePiece(oldPos, newPos) {
-        let temp = this.board[oldPos.r][oldPos.c];
-        this.board[oldPos.r][oldPos.c] = this.board[newPos.r][newPos.c];
-        this.board[newPos.r][newPos.c] = temp;
+    /**
+     * Requires that newPos is the position of an empty tile on the board
+     * @param {*} piece 
+     * @param {*} newPos 
+     */
+    movePiece(piece, newPos) {
+        let oldPos = piece.position;
+
+        this.board[oldPos.r][oldPos.c] = null;
+        this.board[newPos.r][newPos.c] = piece;
+
+        piece.position = newPos;
     }
 
     /**
