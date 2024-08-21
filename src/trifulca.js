@@ -15,9 +15,6 @@ export class Trifulca {
             while (row.push(null) < 5); 
         }
 
-        this.rows = 7;
-        this.cols = 5;
-
         /**
          * An array of all faction pieces
          */
@@ -25,15 +22,6 @@ export class Trifulca {
         this.whitePieces = [];
 
         this.turn = 'WHITE';
-
-        this.battle = {
-            state       : 'INACTIVE',
-            duels       : 0,
-            offWins     : 0,
-            defWins     : 0,
-            defencePos  : null,
-            offencePos  : null
-        }
     }
 
     // toString() {
@@ -170,14 +158,17 @@ export class Trifulca {
             let r = pos.r + dr[i];
             let c = pos.c + dc[i];
             
-            if (r >= this.rows || r < 0 || c >= this.cols || c < 0) 
+            if (r >= 7 || r < 0 || c >= 5 || c < 0) 
                 continue;
 
             let adjacent = this.board[r][c];
-            if (adjacent == null || 
+            if (
+                adjacent == null || 
                 adjacent.faction != faction ||
-                adjacent.status == 'STUNNED')
+                adjacent.status == 'STUNNED'
+            ) {
                 continue;
+            }
 
             support += adjacent.support;
         }
@@ -198,83 +189,14 @@ export class Trifulca {
         piece.position = newPos;
     }
 
-    /**
-     * Initialises the current battle conditions
-     * @param {{r : number, c : number}} defTile    the grid position where the 
-     *                                              battle occurs
-     * @param {{r : number, c : number}} offTile    the grid position where
-     *                                              'pos' is being attacked from
-     */
-    initBattle(defTile, offTile) {
-        this.battle.state = 'ACTIVE';
-        this.battle.defencePos = defTile;
-        this.battle.offencePos = offTile;
+    nextTurn() {
+        this.turn = this.turn == 'RED' 
+            ? 'WHITE'
+            : 'RED';
     }
 
-    /**
-     * Compares two cards and determines the winner, and updates the current 
-     * battle state
-     * @param {{suit : string, value : int}} off    the red faction's card
-     * @param {{suit : string, value : int}} def    the white faction's card
-     * @returns 'OFF' or 'DEF' depending on the which player has a higher
-     *           card, or 'DRAW' if card values are equal
-     */
-    compareCard(off, def) {
-        let diff = off.value - def.value;
-        this.battle.duels++;
-        
-        if (diff > 0) {
-            this.battle.offWins++;
-            return 'OFF';
-        } else if (diff < 0) {
-            this.battle.defWins++;
-            return 'DEF'
-        }
-
-        return 'DRAW';
-    }
-
-    /**
-     * Checks the state of the current battle to determine the winner
-     * @returns {'INCOMPLETE' | 'OFFVICTORY' | 'DEFVICTORY'}    meaning: 
-     * - 'INCOMPLETE' denotes the battle has not yet concluded
-     */
-    checkBattle() {
-        if (this.battle.duels < 3) {
-            return 'INCOMPLETE';
-        }
-
-        let winDiff = this.battle.offWins - this.battle.defWins;
-        if (winDiff > 0) {
-            let defPos = this.battle.defencePos;
-            this.board[defPos.r][defPos.c].status = 'STUNNED';
-            return 'OFFVICTORY';
-        }
-        if (winDiff < 0) {
-            // defensive piece can be attacked while stunned and win, resulting
-            // in being unstunned
-            let defPos = this.battle.defencePos;
-            this.board[defPos.r][defPos.c].status = 'ACTIVE';
-
-            let offPos = this.battle.offencePos;
-            this.board[offPos.r][offPos.c].status = 'STUNNED';
-            return 'DEFVICTORY';
-        }
-        return 'INCOMPLETE';
-    }
-
-    /**
-     * Resets the battle state
-     */
-    finishBattle() {
-        this.battle = {
-            state      : 'INACTIVE',
-            duels      : 0,
-            offWins    : 0,
-            defWins    : 0,
-            defencePos : null,
-            offencePos : null
-        }
+    getPiece(tile) {
+        return this.board[tile.r][tile.c];
     }
 }
 

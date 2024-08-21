@@ -1,23 +1,14 @@
-import { renderBoard, renderMoves, resizeCanvas, board, overlays, game, newGame, getTile, clickedTile } from "./src/trifulcaUI.js"
-
-let rect = board.getBoundingClientRect();
-
-function printMousePos(event) {
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-
-    clicked.innerHTML = "CLICKED: (" + x + ", " + y + ')';
-
-    let tile = getTile(event.clientX, event.clientY);
-    clicked_tile.innerHTML = "TILE: (" + tile.r + ", " + tile.c + ')';
-}
-  
-overlays.addEventListener("click", printMousePos);
-
-let pos = board.getBoundingClientRect();
-document.getElementById('coords').innerHTML += ' (' + (pos.x - rect.left) + ', ' + (pos.y - rect.top) + ')';
+import { 
+    renderBoard, renderMoves, resizeCanvas, initSprites,
+    overlays, game, newGame, clickedTile, wrapper, width, height
+} from "./src/trifulcaMovement.js"
+import { 
+    battling
+} from "./src/trifulcaBattle.js";
 
 newGame();
+
+let p = initSprites();
 
 game.placePieces([
     { type : 'CONQ', position : {r: 0, c: 4}, faction : 'WHITE' },
@@ -30,11 +21,19 @@ game.placePieces([
 
 resizeCanvas();
 
-renderBoard();
+window.addEventListener('resize', resizeCanvas);
+
+p.then(() => {
+    renderBoard();
+    window.addEventListener('resize', renderBoard);
+});
 
 overlays.addEventListener("click", (e) => {
     clickedTile(e);
     renderMoves();
     renderBoard();
 });
+
+//battling({r: 6, c: 2}, {r: 0, c: 2});
+
 

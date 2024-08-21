@@ -1,24 +1,21 @@
 #game {
-    display: flex;
     flex-direction: column;
 }
 
 .board_display {
-    min-height: 330px;
+    min-height: 200px;
     aspect-ratio: 32 / 44;
-}
 
-#board_wrapper {
-    position: relative;
-    height: 80%;
-}
-
-#board, #overlays {
     position: absolute;
     height: 100%;
     
     top: 0px; 
     left: 0px;
+}
+
+#board_wrapper {
+    position: relative;
+    height: 80%;
 }
 
 #board {
@@ -30,4 +27,86 @@
 
 #overlays {
     z-index: 1;
+}
+
+#battle_background {
+    display: none;
+
+    z-index: 2;
+}
+
+#battle {
+    width: 100%;
+    height: 100%;
+
+    display: none;
+
+    z-index: 3;
+}
+
+#scoreboard {
+    position: absolute;
+
+    width: 100%;
+
+    font: 14pt arial;
+    top: 50%;
+    text-align: center;
+    transform: translateY(-50%);
+
+    background-color: lightgray;
+}
+
+.card_wrapper {
+    width: 100%;
+    height: 40%;
+
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    align-items: center;
+}
+
+#white_card_wrapper {
+    top: 0px;
+}
+
+#red_card_wrapper {
+    bottom: 0px;
+}
+
+.cards {
+    display: flex;
+    flex: 1 1 auto;
+    
+    width: 100%;
+    justify-content: space-around;
+}
+
+#white_cards {
+    flex-wrap: wrap-reverse;
+}
+
+#red_cards {
+    flex-wrap: wrap;
+}
+
+.card {
+    background-color: white;
+    box-sizing: border-box;
+    
+    text-align: center;
+
+    margin: 2%;
+
+    height: 40%;
+    aspect-ratio: 5 / 7;
+}
+
+.selected {
+    border: 3px solid gold;
+}
+
+.card_button {
+    flex: 0 1 auto;
 }

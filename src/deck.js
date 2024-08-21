@@ -1,5 +1,5 @@
 export function getCards(redCards, numRed, whiteCards, numWhite) {
-    const suits = ['diamonds', 'clubs', 'hearts', 'spades'];
+    const suits = ['D', 'C', 'H', 'S'];
     const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     let deck = [];

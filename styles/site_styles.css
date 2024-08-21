@@ -31,8 +31,3 @@ body {
 .row.content {
     flex-flow: column;
 }
-
-#button {
-    margin: 10px;
-    padding-bottom: 10px;
-}

@@ -194,133 +194,133 @@ test('getSupport', () => {
     expect(game.getSupport({r: 1, c: 2}, 'WHITE') == 0).toBeTruthy();
 })
 
-test('battle rounds simple', () => {
-    let game = new Trifulca();
-    game.placePieces([
-        { type : 'CONQ', position : {r: 2, c: 2}, faction : 'WHITE' },
-        { type : 'DAME', position : {r: 4, c: 2}, faction : 'RED' }
-    ]);
+// test('battle rounds simple', () => {
+//     let game = new Trifulca();
+//     game.placePieces([
+//         { type : 'CONQ', position : {r: 2, c: 2}, faction : 'WHITE' },
+//         { type : 'DAME', position : {r: 4, c: 2}, faction : 'RED' }
+//     ]);
     
-    // let board = game.toString();
-    // let board_comp = 
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' + 
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |Wc|  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |Rd|  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n';
-    // expect(board == board_comp).toBeTruthy();
+//     // let board = game.toString();
+//     // let board_comp = 
+//     // '----------------\n' + 
+//     // '|  |  |  |  |  |\n' + 
+//     // '----------------\n' + 
+//     // '|  |  |  |  |  |\n' +
+//     // '----------------\n' + 
+//     // '|  |  |Wc|  |  |\n' +
+//     // '----------------\n' + 
+//     // '|  |  |  |  |  |\n' +
+//     // '----------------\n' + 
+//     // '|  |  |Rd|  |  |\n' +
+//     // '----------------\n' + 
+//     // '|  |  |  |  |  |\n' +
+//     // '----------------\n' + 
+//     // '|  |  |  |  |  |\n' +
+//     // '----------------\n';
+//     // expect(board == board_comp).toBeTruthy();
 
-    let moveable = game.getMoves({r: 2, c: 2});
-    let comp = [
-        { status : 'ENEMY', pos : {r: 4, c: 2}},
-        { status : 'EMPTY', pos : {r: 2, c: 4}},
-        { status : 'EMPTY', pos : {r: 2, c: 0}}
-    ];
-    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+//     let moveable = game.getMoves({r: 2, c: 2});
+//     let comp = [
+//         { status : 'ENEMY', pos : {r: 4, c: 2}},
+//         { status : 'EMPTY', pos : {r: 2, c: 4}},
+//         { status : 'EMPTY', pos : {r: 2, c: 0}}
+//     ];
+//     expect(isMoveableEqual(moveable, comp)).toBeTruthy();
 
-    game.initBattle({r: 4, c: 2}, {r: 2, c: 2});
+//     game.initBattle({r: 4, c: 2}, {r: 2, c: 2});
 
-    expect(
-        game.battle.state       == 'ACTIVE' &&
-        game.battle.duels       == 0 &&
-        game.battle.offWins     == 0 &&
-        game.battle.defWins     == 0 &&
-        isPosEqual(game.battle.defencePos, {r: 4, c: 2}) &&
-        isPosEqual(game.battle.offencePos, {r: 2, c: 2})
-    ).toBeTruthy();
+//     expect(
+//         game.battle.state       == 'ACTIVE' &&
+//         game.battle.duels       == 0 &&
+//         game.battle.offWins     == 0 &&
+//         game.battle.defWins     == 0 &&
+//         isPosEqual(game.battle.defencePos, {r: 4, c: 2}) &&
+//         isPosEqual(game.battle.offencePos, {r: 2, c: 2})
+//     ).toBeTruthy();
     
-    let result = game.compareCard(
-        { suit : 'hearts', value : 3 },
-        { suit : 'diamonds', value : 9 }
-    );
-    expect(result == 'DEF').toBeTruthy();
+//     let result = game.compareCard(
+//         { suit : 'hearts', value : 3 },
+//         { suit : 'diamonds', value : 9 }
+//     );
+//     expect(result == 'DEF').toBeTruthy();
 
-    expect(
-        game.battle.duels       == 1 &&
-        game.battle.offWins     == 0 &&
-        game.battle.defWins     == 1
-    ).toBeTruthy();
+//     expect(
+//         game.battle.duels       == 1 &&
+//         game.battle.offWins     == 0 &&
+//         game.battle.defWins     == 1
+//     ).toBeTruthy();
 
-    expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
+//     expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
 
-    result = game.compareCard(
-        { suit : 'clubs', value : 8 },
-        { suit : 'diamonds', value : 8 }
-    );
-    expect(result == 'DRAW').toBeTruthy();
+//     result = game.compareCard(
+//         { suit : 'clubs', value : 8 },
+//         { suit : 'diamonds', value : 8 }
+//     );
+//     expect(result == 'DRAW').toBeTruthy();
 
-    expect(
-        game.battle.duels       == 2 &&
-        game.battle.offWins     == 0 &&
-        game.battle.defWins     == 1
-    ).toBeTruthy();
+//     expect(
+//         game.battle.duels       == 2 &&
+//         game.battle.offWins     == 0 &&
+//         game.battle.defWins     == 1
+//     ).toBeTruthy();
 
-    expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
+//     expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
 
-    result = game.compareCard(
-        { suit : 'spades', value : 10 },
-        { suit : 'spades', value : 2 }
-    );
-    expect(result == 'OFF').toBeTruthy();
+//     result = game.compareCard(
+//         { suit : 'spades', value : 10 },
+//         { suit : 'spades', value : 2 }
+//     );
+//     expect(result == 'OFF').toBeTruthy();
 
-    expect(
-        game.battle.duels       == 3 &&
-        game.battle.offWins     == 1 &&
-        game.battle.defWins     == 1
-    ).toBeTruthy();
+//     expect(
+//         game.battle.duels       == 3 &&
+//         game.battle.offWins     == 1 &&
+//         game.battle.defWins     == 1
+//     ).toBeTruthy();
 
-    expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
+//     expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
 
-    result = game.compareCard(
-        { suit : 'clubs', value : 1 },
-        { suit : 'hearts', value : 1 }
-    );
-    expect(result == 'DRAW').toBeTruthy();
+//     result = game.compareCard(
+//         { suit : 'clubs', value : 1 },
+//         { suit : 'hearts', value : 1 }
+//     );
+//     expect(result == 'DRAW').toBeTruthy();
 
-    expect(
-        game.battle.duels       == 4 &&
-        game.battle.offWins     == 1 &&
-        game.battle.defWins     == 1
-    ).toBeTruthy();
+//     expect(
+//         game.battle.duels       == 4 &&
+//         game.battle.offWins     == 1 &&
+//         game.battle.defWins     == 1
+//     ).toBeTruthy();
 
-    expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
+//     expect(game.checkBattle() == 'INCOMPLETE').toBeTruthy();
 
-    result = game.compareCard(
-        { suit : 'diamonds', value : 6 },
-        { suit : 'clubs', value : 5 }
-    );
-    expect(result == 'OFF').toBeTruthy();
+//     result = game.compareCard(
+//         { suit : 'diamonds', value : 6 },
+//         { suit : 'clubs', value : 5 }
+//     );
+//     expect(result == 'OFF').toBeTruthy();
 
-    expect(
-        game.battle.state       == 'ACTIVE' &&
-        game.battle.duels       == 5 &&
-        game.battle.offWins     == 2 &&
-        game.battle.defWins     == 1 &&
-        isPosEqual(game.battle.defencePos, {r: 4, c: 2}) &&
-        isPosEqual(game.battle.offencePos, {r: 2, c: 2})
-    ).toBeTruthy();
+//     expect(
+//         game.battle.state       == 'ACTIVE' &&
+//         game.battle.duels       == 5 &&
+//         game.battle.offWins     == 2 &&
+//         game.battle.defWins     == 1 &&
+//         isPosEqual(game.battle.defencePos, {r: 4, c: 2}) &&
+//         isPosEqual(game.battle.offencePos, {r: 2, c: 2})
+//     ).toBeTruthy();
 
-    expect(game.checkBattle() == 'OFFVICTORY').toBeTruthy();
+//     expect(game.checkBattle() == 'OFFVICTORY').toBeTruthy();
 
-    game.finishBattle();
+//     game.finishBattle();
 
-    expect(
-        game.battle.state       == 'INACTIVE' &&
-        game.battle.duels       == 0 &&
-        game.battle.offWins     == 0 &&
-        game.battle.defWins     == 0 &&
-        game.battle.defencePos  == null &&
-        game.battle.offencePos  == null
-    ).toBeTruthy();
-})
+//     expect(
+//         game.battle.state       == 'INACTIVE' &&
+//         game.battle.duels       == 0 &&
+//         game.battle.offWins     == 0 &&
+//         game.battle.defWins     == 0 &&
+//         game.battle.defencePos  == null &&
+//         game.battle.offencePos  == null
+//     ).toBeTruthy();
+// })
 

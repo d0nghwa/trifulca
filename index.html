@@ -14,20 +14,25 @@
             <div id="options"></div>
         </div>
         <div id="game" class="row content">
-            <div id="coords">COORDS:</div>
-            <div id="clicked">CLICKED:</div>
-            <div id="clicked_tile">TILE:</div>
             <div id="turn_indicator"></div>
             <div id="board_wrapper" class="board_display">
-                <canvas id="board" class="board_display"></canvas>
-                <canvas id="overlays" class="board_display"></canvas>
+                <canvas id="board"      class="board_display"></canvas>
+                <canvas id="overlays"   class="board_display"></canvas>
+                <canvas id="battle_background" class="board_display"></canvas>
+                <div id="battle" class="board_display">
+                    <div id="white_card_wrapper" class="card_wrapper">
+                        <div id="white_cards" class="cards"></div>
+                        <button id="white_button" class="card_button">duel</button>
+                    </div>
+                    <div id="scoreboard"></div>
+                    <div id="red_card_wrapper" class="card_wrapper">
+                        <button id="red_button" class="card_button">duel</button>
+                        <div id="red_cards" class="cards"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <script type="module" src="./src/deck.js"></script>
-    <script type="module" src="./src/trifulcaPiece.js"></script>
-    <script type="module" src="./src/trifulca.js"></script>
-    <script type="module" src="./src/trifulcaUI.js"></script>
     <script type="module" src="./index.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 import { Trifulca } from "./trifulca.js"
+import { scoreElem } from "./trifulcaBattle.js"
 
-let borderSize = 10;
+const wrapper       = document.getElementById('board_wrapper');
 
 const board         = document.getElementById('board');
 const piecesCanvas  = board.getContext('2d');
@@ -14,15 +15,30 @@ const MOVEABLETILE   = 'rgb(0 128 0 / 50%)';
 const BLOCKEDTILE    = 'rgb(0 0 0 / 50%)';
 const ATTACKABLETILE = 'rgb(255 0 0 / 50%)';
 
+const sprites = {
+    RED : {
+        CONQ : null,
+        DAME : null,
+        NITE : null
+    },
+    WHITE : {
+        CONQ : null,
+        DAME : null,
+        NITE : null
+    }
+}
+
 let game;
 
-const state = {
+const currentSelected = {
     currPiece   : null,
     shownMoves  : null,
     clickedPos  : null
 }
 
-export { board, overlays, game, state };
+let width, height;
+
+export { board, overlays, overlayCanvas, game, currentSelected, wrapper, width, height };
 
 export function newGame() {
     game = new Trifulca();
@@ -92,8 +108,7 @@ export function clickedTile(event) {
     }
     const status = getSelectedMoveStatus(tile);
 
-    const clickedPos = state.clickedPos;
-    const currPiece = state.currPiece;
+    const currPiece = currentSelected.currPiece;
     
     clearMove();
 
@@ -101,7 +116,7 @@ export function clickedTile(event) {
         if (piece == null || piece === currPiece)
             return
 
-        if (isAlly(piece, currPiece))
+        if (piece.faction === currPiece.faction)
             setMove(tile);
 
         return;
@@ -111,7 +126,7 @@ export function clickedTile(event) {
 }
 
 function movesHidden() {
-    return state.clickedPos == null;
+    return currentSelected.clickedPos == null;
 }
 
 function isInvalidPiece(piece) {
@@ -128,12 +143,8 @@ function isInvalidPiece(piece) {
     return 'VALID';
 }
 
-function isAlly(a, b) {
-    return a.faction === b.faction;
-}
-
 function getSelectedMoveStatus(clicked) {
-    for (const move of state.shownMoves) {
+    for (const move of currentSelected.shownMoves) {
         if (clicked.r === move.pos.r && clicked.c === move.pos.c)
             return move.status;
     }
@@ -144,6 +155,7 @@ function attemptMove(status, piece, newPos) {
     switch(status) {
         case 'EMPTY': {
             movePiece(piece, newPos);
+            game.nextTurn();
             break;
         }
         case 'BLOCKED': {
@@ -160,15 +172,15 @@ function attemptMove(status, piece, newPos) {
 }
 
 function setMove(tile) {
-    state.clickedPos = tile;
-    state.shownMoves = game.getMoves(tile);
-    state.currPiece  = game.board[tile.r][tile.c];
+    currentSelected.clickedPos = tile;
+    currentSelected.shownMoves = game.getMoves(tile);
+    currentSelected.currPiece  = game.board[tile.r][tile.c];
 }
 
 function clearMove() {
-    state.clickedPos = null;
-    state.shownMoves = null;
-    state.currPiece  = null;
+    currentSelected.clickedPos = null;
+    currentSelected.shownMoves = null;
+    currentSelected.currPiece  = null;
 }
 
 /**
@@ -178,13 +190,35 @@ function movePiece(piece, newPos) {
     game.movePiece(piece, newPos);
 }
 
-function beginBattle() {
-    // add functionality
+export async function moving() {
+
 }
 
 /*
  RENDERING FUNCTIONS  
  */
+
+export function initSprites() {
+    const factions = ['RED', 'WHITE'];
+    const types = ['CONQ', 'DAME', 'NITE'];
+
+    const promises = [];
+    for (const faction of factions) {
+        for (const type of types) {
+            const img = new Image();
+            img.src = './../backgrounds/' + faction + ' ' + type + '.png';
+
+            const promise = new Promise((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = (err) => reject(err);
+            })
+            promises.push(promise);
+
+            sprites[faction][type] = img;
+        }
+    }
+    return Promise.all(promises);
+}
 
 export function renderMoves() {
     overlayCanvas.reset();
@@ -192,7 +226,7 @@ export function renderMoves() {
     if (movesHidden())
         return;
 
-    for (const move of state.shownMoves)
+    for (const move of currentSelected.shownMoves)
         renderMove(move);
 }
 
@@ -220,7 +254,9 @@ function renderMove(move) {
 }
 
 export function renderBoard() {
-    piecesCanvas.reset();
+    let t = board.getBoundingClientRect();
+
+    piecesCanvas.clearRect(0, 0, t.width, t.height);
 
     renderPieces(game.redPieces);
     renderPieces(game.whitePieces);
@@ -235,21 +271,20 @@ function renderPieces(pieces) {
         let t = board.getBoundingClientRect();
         let tileSize = t.width * (6 / 32);
 
-        const img = new Image();
-        img.src = 
-            './../backgrounds/' + piece.faction + ' ' + piece.type + '.png'
-        img.onload = () => {
-            piecesCanvas.drawImage(img, pos.x, pos.y, tileSize, tileSize);
-        }
+        let img = sprites[piece.faction][piece.type];
+        piecesCanvas.drawImage(img, pos.x, pos.y, tileSize, tileSize);
     }
 }
 
 export function resizeCanvas() {
-    let t = board.getBoundingClientRect();
+    let t = wrapper.getBoundingClientRect();
 
-    board.width = t.width;
-    board.height = t.height;
+    width = t.width;
+    height = t.height;
 
-    overlays.width = t.width;
-    overlays.height = t.height;
+    const canvases = document.querySelectorAll('canvas');
+    for (const canvas of canvases) {
+        canvas.width = t.width;
+        canvas.height = t.height;
+    }
 }
