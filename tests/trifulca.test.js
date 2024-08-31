@@ -14,37 +14,30 @@ function isPosEqual(a, b) {
     return a.r === b.r && a.c === b.c;
 }
 
-// test('placePieces', () => {
-//     let game = new Trifulca();
-//     game.placePieces([
-//         { type : 'CONQ', position : {r: 0, c: 4}, faction : 'WHITE' },
-//         { type : 'DAME', position : {r: 0, c: 2}, faction : 'WHITE' },
-//         { type : 'NITE', position : {r: 0, c: 1}, faction : 'WHITE' },
-//         { type : 'CONQ', position : {r: 6, c: 2}, faction : 'RED' },
-//         { type : 'DAME', position : {r: 6, c: 1}, faction : 'RED' },
-//         { type : 'NITE', position : {r: 6, c: 0}, faction : 'RED' }
-//     ]);
+test('placePieces', () => {
+    let game = new Trifulca();
+    game.placePieces([
+        { type : 'CONQ', position : {r: 0, c: 4}, faction : 'WHITE' },
+        { type : 'DAME', position : {r: 0, c: 2}, faction : 'WHITE' },
+        { type : 'NITE', position : {r: 0, c: 1}, faction : 'WHITE' },
+        { type : 'CONQ', position : {r: 6, c: 2}, faction : 'RED' },
+        { type : 'DAME', position : {r: 6, c: 1}, faction : 'RED' },
+        { type : 'NITE', position : {r: 6, c: 0}, faction : 'RED' }
+    ]);
 
-//     let board = game.toString();
-//     let comp = 
-//     '----------------\n' + 
-//     '|  |Wk|Wd|  |Wc|\n' + 
-//     '----------------\n' + 
-//     '|  |  |  |  |  |\n' +
-//     '----------------\n' + 
-//     '|  |  |  |  |  |\n' +
-//     '----------------\n' + 
-//     '|  |  |  |  |  |\n' +
-//     '----------------\n' + 
-//     '|  |  |  |  |  |\n' +
-//     '----------------\n' + 
-//     '|  |  |  |  |  |\n' +
-//     '----------------\n' + 
-//     '|Rk|Rd|Rc|  |  |\n' +
-//     '----------------\n';
-
-//     expect(board == comp).toBeTruthy();
-// })
+    for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 5; j++) {
+            if (
+                (i === 0 && (j === 4 || j === 2 || j === 1)) || 
+                (i === 6 && (j === 2 || j === 1 || j === 0))
+            ) {
+                expect(game.board[i][j] !== null).toBeTruthy();
+            } else {
+                expect(game.board[i][j] === null).toBeTruthy();
+            }
+        }
+    }
+})
 
 test('getMoveable simple', () => {
     let game = new Trifulca();
@@ -56,25 +49,6 @@ test('getMoveable simple', () => {
         { type : 'DAME', position : {r: 6, c: 1}, faction : 'RED' },
         { type : 'NITE', position : {r: 6, c: 4}, faction : 'RED' }
     ]);
-
-    // let board = game.toString();
-    // let board_comp = 
-    // '----------------\n' + 
-    // '|  |  |  |Wk|Wc|\n' + 
-    // '----------------\n' + 
-    // '|  |  |  |  |Wd|\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |Rd|Rc|  |Rk|\n' +
-    // '----------------\n';
-    // expect(board == board_comp).toBeTruthy();
 
     let moveable = game.getMoves({r: 0, c: 4});
     let comp = [
@@ -130,25 +104,6 @@ test('getMoveable complex', () => {
         { type : 'DAME', position : {r: 6, c: 3}, faction : 'RED' },
         { type : 'NITE', position : {r: 6, c: 4}, faction : 'RED' }
     ]);
-    
-    // let board = game.toString();
-    // let board_comp = 
-    // '----------------\n' + 
-    // '|  |  |  |Wk|  |\n' + 
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |Wc|  |  |\n' +
-    // '----------------\n' + 
-    // '|  |  |  |  |  |\n' +
-    // '----------------\n' + 
-    // '|  |Wd|Rc|Rd|Rk|\n' +
-    // '----------------\n';
-    // expect(board == board_comp).toBeTruthy();
 
     let moveable = game.getMoves({r: 4, c: 2});
     let comp = [
@@ -194,31 +149,98 @@ test('getSupport', () => {
     expect(game.getSupport({r: 1, c: 2}, 'WHITE') == 0).toBeTruthy();
 })
 
+test('getPushable simple', () => {
+    let game = new Trifulca();
+    game.placePieces([
+        { type : 'CONQ', position : {r: 0, c: 4}, faction : 'WHITE' },
+        { type : 'DAME', position : {r: 0, c: 2}, faction : 'WHITE' },
+        { type : 'NITE', position : {r: 0, c: 1}, faction : 'WHITE' },
+        { type : 'CONQ', position : {r: 5, c: 1}, faction : 'RED' },
+        { type : 'DAME', position : {r: 6, c: 1}, faction : 'RED' },
+        { type : 'NITE', position : {r: 6, c: 0}, faction : 'RED' }
+    ]);
+
+    let moveable = game.getPushes({r: 5, c: 1});
+    let comp = [
+        { status : 'BLOCKED', pos : {r: 7, c: 1}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 0, c: 2});
+    comp = [
+        { status : 'OUT', pos : {r: -1, c: 2}},
+        { status : 'ALLY', pos : {r: 0, c: 1}},
+        { status : 'EMPTY', pos : {r: 0, c: 3}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 0, c: 1});
+    comp = [
+        { status : 'OUT', pos : {r: -1, c: 0}},
+        { status : 'OUT', pos : {r: -1, c: 2}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 6, c: 0});
+    comp = [
+        { status : 'OUT', pos : {r: 7, c: 1}},
+        { status : 'OUT', pos : {r: 7, c: -1}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+})
+
+test('getPushable complex', () => {
+    const game = new Trifulca();
+    game.placePieces([
+        { type : 'CONQ', position : {r: 1, c: 1}, faction : 'WHITE' },
+        { type : 'DAME', position : {r: 0, c: 1}, faction : 'WHITE' },
+        { type : 'CONQ', position : {r: 0, c: 4}, faction : 'WHITE' },
+        { type : 'DAME', position : {r: 6, c: 0}, faction : 'WHITE' },
+        { type : 'CONQ', position : {r: 4, c: 0}, faction : 'RED' },
+        { type : 'CONQ', position : {r: 6, c: 2}, faction : 'RED' },
+        { type : 'CONQ', position : {r: 5, c: 4}, faction : 'RED' },
+        { type : 'DAME', position : {r: 6, c: 4}, faction : 'RED' }
+    ]);
+
+    let moveable = game.getPushes({r: 0, c: 4});
+    let comp = [
+        { status : 'OUT', pos : {r: -1, c: 4}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 1, c: 1});
+    comp = [
+        { status : 'BLOCKED', pos : {r: -1, c: 1}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 4, c: 0});
+    comp = [
+        { status : 'ENEMY', pos : {r: 6, c: 0}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+    
+    moveable = game.getPushes({r: 6, c: 2});
+    comp = [
+        { status : 'OUT', pos : {r: 7, c: 2}}
+    ];
+    console.log(moveable);
+    console.log(comp);
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+
+    moveable = game.getPushes({r: 5, c: 4});
+    comp = [
+        { status : 'BLOCKED', pos : {r: 7, c: 4}}
+    ];
+    expect(isMoveableEqual(moveable, comp)).toBeTruthy();
+})
+
 // test('battle rounds simple', () => {
 //     let game = new Trifulca();
 //     game.placePieces([
 //         { type : 'CONQ', position : {r: 2, c: 2}, faction : 'WHITE' },
 //         { type : 'DAME', position : {r: 4, c: 2}, faction : 'RED' }
 //     ]);
-    
-//     // let board = game.toString();
-//     // let board_comp = 
-//     // '----------------\n' + 
-//     // '|  |  |  |  |  |\n' + 
-//     // '----------------\n' + 
-//     // '|  |  |  |  |  |\n' +
-//     // '----------------\n' + 
-//     // '|  |  |Wc|  |  |\n' +
-//     // '----------------\n' + 
-//     // '|  |  |  |  |  |\n' +
-//     // '----------------\n' + 
-//     // '|  |  |Rd|  |  |\n' +
-//     // '----------------\n' + 
-//     // '|  |  |  |  |  |\n' +
-//     // '----------------\n' + 
-//     // '|  |  |  |  |  |\n' +
-//     // '----------------\n';
-//     // expect(board == board_comp).toBeTruthy();
 
 //     let moveable = game.getMoves({r: 2, c: 2});
 //     let comp = [
@@ -228,7 +250,7 @@ test('getSupport', () => {
 //     ];
 //     expect(isMoveableEqual(moveable, comp)).toBeTruthy();
 
-//     game.initBattle({r: 4, c: 2}, {r: 2, c: 2});
+//     initBattle({r: 4, c: 2}, {r: 2, c: 2});
 
 //     expect(
 //         game.battle.state       == 'ACTIVE' &&

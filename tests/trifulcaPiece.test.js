@@ -11,21 +11,13 @@ function isEqual(a, b) {
     return true;
 }
 
-test('test moveable tiles basic', () => {
-    let board = [];
-
-    let row;
-    while (board.length < 7) {
-        board.push(row = []);
-        while (row.push(null) < 5); 
-    }
-    
+test('getMoveableTiles', () => {
     const conq = new Piece(
         {r: 0, c: 0}, 
         'WHITE', 
         'CONQ'
     );
-    const conq_moves = conq.getMoveableTiles(board);
+    const conq_moves = conq.getMoveableTiles();
     expect(isEqual(conq_moves, [
         {r: 2, c: 0},
         {r: 0, c: 2}
@@ -39,7 +31,7 @@ test('test moveable tiles basic', () => {
         'WHITE', 
         'NITE'
     );
-    const nite_moves = nite.getMoveableTiles(board);
+    const nite_moves = nite.getMoveableTiles();
     expect(isEqual(nite_moves, [
         {r: 1, c: 3}
     ])).toBeTruthy();
@@ -50,10 +42,47 @@ test('test moveable tiles basic', () => {
         'RED', 
         'DAME'
     );
-    const dame_moves = dame.getMoveableTiles(board);
+    const dame_moves = dame.getMoveableTiles();
     expect(isEqual(dame_moves, [
         {r: 5, c: 2},
         {r: 6, c: 1},
+        {r: 6, c: 3}
+    ])).toBeTruthy();
+})
+
+test('getPushableTiles', () => {
+    let piece = new Piece({r: 0, c: 0}, 'WHITE', 'CONQ');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: -1, c: 0}
+    ])).toBeTruthy();
+
+    piece = new Piece({r: 0, c: 2}, 'WHITE', 'DAME');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: -1, c: 2},
+        {r: 0, c: 1},
+        {r: 0, c: 3}
+    ])).toBeTruthy();
+
+    piece = new Piece({r: 0, c: 4}, 'WHITE', 'NITE');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: -1, c: 3},
+        {r: -1, c: 5}
+    ])).toBeTruthy();
+
+    piece = new Piece({r: 5, c: 2}, 'RED', 'CONQ');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: 7, c: 2}
+    ])).toBeTruthy();
+
+    piece = new Piece({r: 6, c: 2}, 'RED', 'CONQ');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: 7, c: 2}
+    ])).toBeTruthy();
+
+    piece = new Piece({r: 6, c: 4}, 'RED', 'DAME');
+    expect(isEqual(piece.getPushableTiles(), [
+        {r: 7, c: 4},
+        {r: 6, c: 5},
         {r: 6, c: 3}
     ])).toBeTruthy();
 })

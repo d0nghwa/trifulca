@@ -1,5 +1,5 @@
 import { Trifulca } from "./trifulca.js"
-import { scoreElem } from "./trifulcaBattle.js"
+import { battling } from "./trifulcaBattle.js"
 
 const wrapper       = document.getElementById('board_wrapper');
 
@@ -30,15 +30,15 @@ const sprites = {
 
 let game;
 
-const currentSelected = {
-    currPiece   : null,
-    shownMoves  : null,
-    clickedPos  : null
+const selected = {
+    piece   : null,
+    moves   : null,
+    pos     : null
 }
 
 let width, height;
 
-export { board, overlays, overlayCanvas, game, currentSelected, wrapper, width, height };
+export { board, overlays, overlayCanvas, game, wrapper, width, height };
 
 export function newGame() {
     game = new Trifulca();
@@ -51,30 +51,26 @@ export function newGame() {
  * @returns {{r: number, c: number}}    the position of the clicked tile in
  *  [row, column] format
  */
-export function getTile(mx, my) {
-    let t = board.getBoundingClientRect();
-    let border = t.width / 32;
-    let tileSize = t.width * (6 / 32);
-
+function getTile(mx, my) {
+    let border = width / 32;
+    let tileSize = width * (6 / 32);
+    
     // position relative to top-left corner of grid
+    let t = board.getBoundingClientRect();
+    // relative positions
     let rx = mx - t.left - border;
     let ry = my - t.top - border;
-    
-    let gridWidth = t.width - 2 * border;
-    let gridHeight =  t.height - 2 * border;
+    // grid dimensions
+    let gw = width - 2 * border;
+    let gh = height - 2 * border;
 
-    return (rx < 0 || rx >= gridWidth || 
-            ry < 0 || ry >= gridHeight) 
-        ? {
-            r : -1,
-            c : -1
-        } : {
-            r : Math.floor(ry / tileSize),
-            c : Math.floor(rx / tileSize)
-        }
+    return {
+        r: ry < 0 ? -1 : ry >= gh ? 7 : Math.floor(ry / tileSize),
+        c: rx < 0 ? -1 : rx >= gw ? 5 : Math.floor(rx / tileSize)
+    }
 }
 
-export function getRelativePos(tile) {
+function getRelativePos(tile) {
     let t = board.getBoundingClientRect();
     let border = t.width / 32;
     let tileSize = t.width * (6 / 32);
@@ -85,102 +81,143 @@ export function getRelativePos(tile) {
     };
 }
 
-export function clickedTile(event) {
-    const tile = getTile(event.clientX, event.clientY);
+function outOfBounds(tile) {
+    return (tile.r < 0 || tile.r > 6 || tile.c < 0 || tile.c > 4);
+}
 
-    // game not initialised (SHOULD NOT OCCUR)
-    if (game == null) return;
-    // clicked out of bounds
-    if (tile.r === -1 || tile.c === -1) return;
+function isAlly(piece, ally) {
+    return (
+        piece !== null && 
+        piece.faction === ally.faction &&
+        piece !== ally
+    )
+}
 
-    const piece = game.board[tile.r][tile.c];
+export async function playing() {
+    while (true) {
+        renderTurn();
 
-    if (movesHidden()) {
-        switch (isInvalidPiece(piece)) {
-            case 'UNMOVEABLE' : /* indicate invalid */
-            case 'NULL' : return;
-            default :
+        let move = selectMove();
+
+        overlays.addEventListener('click', renderMoves);
+
+        await moving(await move);
+
+        renderBoard();
+        renderMoves();
+
+        overlays.removeEventListener('click', renderMoves);
+
+        game.nextTurn();
+    }
+}
+
+async function moving(move) {
+    if (move.status === 'ENEMY') {
+        let offPos = move.piece.position;
+        let defPos = move.pos;
+        let result = await battling(defPos, offPos);
+        
+        console.log(result);
+
+        if (result === 'OFFVICTORY') {
+            // defender pushed back
+            // move offensive piece
+            // defensive piece stunned
+            // check pushed off
+        } else {
+            // offender pushed back
+            // offensive piece stunned
+            // check pushed off
         }
-
-        setMove(tile);
-
-        return;
+    } else {
+        movePiece(move.piece, move.pos);
+        // check if finished/won
     }
-    const status = getSelectedMoveStatus(tile);
+}
 
-    const currPiece = currentSelected.currPiece;
-    
-    clearMove();
+async function pushing(tile) {
+    // render possible pushes
+    // get click
+    // 
+}
 
-    if (status == 'UNREACHABLE') {
-        if (piece == null || piece === currPiece)
-            return
+function selectMove() {
+    return new Promise((resolve, reject) => {
+        // need to keep a reference to both selectMoveEvent and resolve
+        overlays.addEventListener('click', function selectMoveEvent(event) {
+            const tile = getTile(event.clientX, event.clientY);
 
-        if (piece.faction === currPiece.faction)
-            setMove(tile);
+            if (outOfBounds(tile)) 
+                return;
 
-        return;
-    }
+            const piece = game.getPiece(tile);
 
-    attemptMove(status, currPiece, tile);
+            if (movesHidden()) {
+                if (!isInvalidPiece(piece))
+                    setMove(tile);
+
+                return;
+            }
+            
+            const move = {
+                status  : getSelectedMoveStatus(tile),
+                piece   : selected.piece,
+                pos     : tile
+            }
+
+            clearMove();
+
+            switch (move.status) {
+                case 'UNREACHABLE' :
+                    if (isAlly(piece, move.piece))
+                        setMove(move.pos);
+                    break;
+                case 'ALLY' : 
+                    setMove(move.pos);
+                    break;
+                case 'BLOCKED' :
+                    break;
+                case 'ENEMY' :
+                case 'EMPTY' :
+                    resolve(move);
+                    overlays.removeEventListener('click', selectMoveEvent);
+            }
+        });
+    });
 }
 
 function movesHidden() {
-    return currentSelected.clickedPos == null;
+    return selected.piece == null;
 }
 
 function isInvalidPiece(piece) {
-    if (piece == null)
-        return 'NULL';
-
-    if (piece.faction != game.turn ||
+    return (
+        piece == null ||
+        piece.faction != game.turn ||
         piece.status == 'FINISHED' ||
         piece.status == 'STUNNED'
-    ) {
-        return 'UNMOVEABLE';
-    }
-
-    return 'VALID';
+    ) 
 }
 
 function getSelectedMoveStatus(clicked) {
-    for (const move of currentSelected.shownMoves) {
+    for (const move of selected.moves) {
         if (clicked.r === move.pos.r && clicked.c === move.pos.c)
             return move.status;
     }
     return 'UNREACHABLE';
 }
 
-function attemptMove(status, piece, newPos) {
-    switch(status) {
-        case 'EMPTY': {
-            movePiece(piece, newPos);
-            game.nextTurn();
-            break;
-        }
-        case 'BLOCKED': {
-            break;
-        }
-        case 'ALLY': {
-            setMove(newPos);
-            break;
-        }
-        case 'ENEMY': {
-            /** begin battle round */
-        }
-    }
-}
-
 function setMove(tile) {
-    currentSelected.clickedPos = tile;
-    currentSelected.shownMoves = game.getMoves(tile);
-    currentSelected.currPiece  = game.board[tile.r][tile.c];
+    selected.pos = tile;
+    selected.moves = game.getMoves(tile);
+    selected.piece = game.getPiece(tile);
 }
 
 function clearMove() {
-    currentSelected.clickedPos = null;
-    currentSelected.shownMoves = null;
-    currentSelected.currPiece  = null;
+    selected.pos = null;
+    selected.moves = null;
+    selected.piece = null;
 }
 
 /**
@@ -188,10 +225,6 @@ function clearMove() {
  */
 function movePiece(piece, newPos) {
     game.movePiece(piece, newPos);
-}
-
-export async function moving() {
-
 }
 
 /*
@@ -220,56 +253,51 @@ export function initSprites() {
     return Promise.all(promises);
 }
 
-export function renderMoves() {
+function renderTurn() {
+    turnIndicator.innerHTML = game.turn;
+}
+
+function renderMoves() {
     overlayCanvas.reset();
 
     if (movesHidden())
         return;
 
-    for (const move of currentSelected.shownMoves)
+    for (const move of selected.moves)
         renderMove(move);
 }
 
 function renderMove(move) {
     const pos = getRelativePos(move.pos);
 
-    let t = board.getBoundingClientRect();
-    let tileSize = t.width * (6 / 32);
+    let tileSize = width * (6 / 32);
 
     switch (move.status) {
-        case 'EMPTY': {
+        case 'EMPTY':
             overlayCanvas.fillStyle = MOVEABLETILE;
             break;
-        }
         case 'BLOCKED': /* blocked and ally are functionally equal */
-        case 'ALLY': {
+        case 'ALLY':
             overlayCanvas.fillStyle = BLOCKEDTILE;
             break;
-        }
-        case 'ENEMY': {
+        case 'ENEMY':
             overlayCanvas.fillStyle = ATTACKABLETILE;
-        }
     }
     overlayCanvas.fillRect(pos.x, pos.y, tileSize, tileSize);
 }
 
 export function renderBoard() {
-    let t = board.getBoundingClientRect();
-
-    piecesCanvas.clearRect(0, 0, t.width, t.height);
+    piecesCanvas.clearRect(0, 0, width, height);
 
     renderPieces(game.redPieces);
     renderPieces(game.whitePieces);
-
-    turnIndicator.innerHTML = game.turn;
 }
 
 function renderPieces(pieces) {
     for (const piece of pieces) {
         const pos = getRelativePos(piece.position);
 
-        let t = board.getBoundingClientRect();
-        let tileSize = t.width * (6 / 32);
+        let tileSize = width * (6 / 32);
 
         let img = sprites[piece.faction][piece.type];
         piecesCanvas.drawImage(img, pos.x, pos.y, tileSize, tileSize);

@@ -46,6 +46,10 @@ export class Piece {
         }
     }
 
+    /**
+     * Returns a list of valid board positions that the piece can move to
+     * @returns an array of possible moves
+     */
     getMoveableTiles() {
         let moves = [];
         for (const move of this.movement) {
@@ -64,19 +68,30 @@ export class Piece {
         return moves;
     }
 
-    // getPushableTiles(board) {
-    //     let moves = [];
-    //     for (const move of this.movement) {
-    //         let dr = (this.faction == 'white') ? -move[0] : move[0];
-    //         let dc = (this.faction == 'white') ? -move[1] : move[1];
-    //         let new_pos = [this.position[0] + dr, this.position[1] + dc];
+    /**
+     * Returns a list of board positions that the piece can move to. Positions
+     * can be invalid board positions
+     * @returns an array of moves
+     */
+    getPushableTiles() {
+        let moves = [];
+        for (const move of this.movement) {
+            let dr = this.faction == 'WHITE' ? -move.r : move.r;
+            let dc = this.faction == 'WHITE' ? -move.c : move.c;
+            
+            let r = this.position.r + dr;
+            let c = this.position.c + dc;
+            
+            let new_pos = {
+                r: r < 0 ? -1 : r > 6 ? 7 : r,
+                c: c < 0 ? -1 : c > 4 ? 5 : c
+            };
+            moves.push(new_pos);
 
-    //         moves.push(new_pos);
-
-    //         // conq can only be pushed row-wise, row movement is first in moves
-    //         if (this.type == 'conq') 
-    //             break;
-    //     }
-    //     return moves;
-    // }
+            // conq can only be pushed row-wise, row movement is first in moves
+            if (this.type == 'CONQ') 
+                break;
+        }
+        return moves;
+    }
 }

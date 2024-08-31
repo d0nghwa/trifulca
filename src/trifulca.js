@@ -24,40 +24,6 @@ export class Trifulca {
         this.turn = 'WHITE';
     }
 
-    // toString() {
-    //     let str = '';
-    //     for (let i = 0; i < 5; i++) {
-    //         str += '---';
-    //     }
-    //     str += '-\n';
-    //     for (const row of this.board) {
-    //         for (const cell of row) {
-    //             str += '|';
-    //             if (cell == null) {
-    //                 str += '  ';
-    //             } else {
-    //                 str += cell.faction == 'red' ? 'R' : 'W';
-    //                 switch (cell.type) {
-    //                     case 'conq' :
-    //                         str += 'c';
-    //                         break;
-    //                     case 'dame' :
-    //                         str += 'd';
-    //                         break;
-    //                     default :
-    //                         str += 'k';
-    //                 }
-    //             }
-    //         }
-    //         str += '|\n';
-    //         for (let i = 0; i < 5; i++) {
-    //             str += '---';
-    //         }
-    //         str += '-\n';
-    //     }
-    //     return str;
-    // }
-
     /**
      * Places the given pieces in the board
      * @param {
@@ -108,9 +74,9 @@ export class Trifulca {
      *  - 'position' is the coordinates of the tile, must contain a valid piece
      */
     getMoves(pos) {
-        const movingPiece = this.board[pos.r][pos.c];
+        const movingPiece = this.getPiece(pos);
 
-        const moveableTiles = movingPiece.getMoveableTiles(this.board);
+        const moveableTiles = movingPiece.getMoveableTiles();
 
         let validTiles = [];
         for (const moveable of moveableTiles) {
@@ -119,7 +85,7 @@ export class Trifulca {
                 pos : moveable
             };
 
-            const targetPiece = this.board[moveable.r][moveable.c];
+            const targetPiece = this.getPiece(moveable);
             if (targetPiece == null) 
                 valid.status = 'EMPTY';
             else if (targetPiece.faction == movingPiece.faction)
@@ -137,6 +103,47 @@ export class Trifulca {
             validTiles.push(valid);
         }
         return validTiles;
+    }
+
+    getPushes(pos) {
+        const pushingPiece = this.getPiece(pos);
+        const pushableTiles = pushingPiece.getPushableTiles();
+
+        let tiles = [];
+        for (const pushable of pushableTiles) {
+            let push = {
+                status: '',
+                pos : pushable
+            }
+
+            if (
+                pushable.r >= 7 || pushable.r < 0 || 
+                pushable.c >= 5 || pushable.c < 0
+            ) {
+                push.status = 'OUT';
+            } else {
+                const targetPiece = this.getPiece(pushable);
+                if (targetPiece === null)
+                    push.status = 'EMPTY';
+                else if (targetPiece.faction == pushingPiece.faction) {
+                    push.status = 'ALLY';
+                } else {
+                    push.status = 'ENEMY';
+                }
+            }
+
+            // CONQ can only be pushed row-wise, hence it can only be blocked 
+            // row-wise
+            if (pushingPiece.type == 'CONQ' && 
+                (pos.r > 0 && pos.r < 6) &&
+                this.board[(pushable.r + pos.r) >> 1][pushable.c] !== null
+            ) {
+                push.status = 'BLOCKED';
+            }
+
+            tiles.push(push);
+        }
+        return tiles;
     }
 
     /**
@@ -196,7 +203,9 @@ export class Trifulca {
     }
 
     getPiece(tile) {
-        return this.board[tile.r][tile.c];
+        return tile.r < 0 || tile.r >= 7 || tile.c < 0 || tile.c >= 5
+            ? null
+            : this.board[tile.r][tile.c];
     }
 }
 

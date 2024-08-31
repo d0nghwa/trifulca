@@ -1,5 +1,5 @@
 import { Trifulca } from "./trifulca.js";
-import { game, overlayCanvas, width, height } from "./trifulcaMovement.js";
+import { game, width, height } from "./trifulcaMovement.js";
 import { getCards } from "./deck.js";
 
 const whiteElem = document.getElementById('white_cards');
@@ -18,14 +18,16 @@ const FONT = 'normal normal normal 20px arial';
 const BATTLINGBACKGROUND = "rgb(23 33 33 / 35%)";
 
 let inBattle = false;
-let battle, 
+let attacker,
+    defender,
+    duels,
+    offWins,
+    defWins,
+    offTile,
+    defTile,
     offHand,
     defHand,
-    selectedIndex,
-    offSelected,
-    defSelected;
-
-export { scoreElem };
+    selectedIndex;
 
 /**
  * The mechanics of the battles are subject to change, hence they are in a
@@ -35,15 +37,14 @@ export { scoreElem };
 function initBattle(defPos, offPos) {
     inBattle = true;
 
-    battle = {
-        attacker : game.turn, 
-        defender : game.turn == 'RED' ? 'WHITE' : 'RED',
-        duels    : 0,
-        offWins  : 0,
-        defWins  : 0,
-        offTile  : defPos,
-        defTile  : offPos
-    };
+    attacker = game.turn; 
+    defender = game.turn == 'RED' ? 'WHITE' : 'RED';
+    duels    = 0;
+    offWins  = 0;
+    defWins  = 0;
+    offTile  = offPos;
+    defTile  = defPos;
+
     /**
      * wrapper to allow promises to access updating primitives
      * @see selectingCard
@@ -55,9 +56,9 @@ function initBattle(defPos, offPos) {
 
     getCards(
         offHand, 
-        game.getSupport(offPos, battle.attacker) + game.getPiece(offPos).battle, 
+        game.getSupport(offPos, attacker) + game.getPiece(offPos).battle, 
         defHand, 
-        game.getSupport(defPos, battle.defender) + game.getPiece(defPos).battle
+        game.getSupport(defPos, defender) + game.getPiece(defPos).battle
     );
 }
 
@@ -70,15 +71,15 @@ function initBattle(defPos, offPos) {
      *           card, or 'DRAW' if card values are equal
      */
 function compareCard(off, def) {
-    battle.duels++;
+    duels++;
 
     let diff = off.value - def.value;
     if (diff === 0) 
         return;
     
     diff > 0 
-        ? battle.offWins++ 
-        : battle.defWins++;
+        ? offWins++ 
+        : defWins++;
 }
 
  /**
@@ -86,10 +87,10 @@ function compareCard(off, def) {
      * @returns {'INCOMPLETE' | 'OFFVICTORY' | 'DEFVICTORY'}
      */
 function checkBattleState() {
-    if (battle.duels < 3)
+    if (duels < 3)
         return 'INCOMPLETE';
 
-    let winDiff = battle.offWins - battle.defWins;
+    let winDiff = offWins - defWins;
     if (winDiff !== 0)
         return winDiff > 0 
             ? 'OFFVICTORY' 
@@ -114,7 +115,7 @@ RENDER BATTLE FUNCTIONS
  */
 
 function updateScore() {
-    scoreElem.innerHTML = battle.offWins + ' - ' + battle.defWins;
+    scoreElem.innerHTML = offWins + ' - ' + defWins;
 }
 
 function displayBattle() {
@@ -128,20 +129,17 @@ function renderBattle() {
 }
 
 function unrenderBattle() {
-    clearContext();
-
-    scoreElem.style.display = 'none';
-
-    whiteElem.style.display = 'none';
-    redElem.style.display = 'none';
-}
-
-function clearContext() {
     battleContext.clearRect(0, 0, width, height);
+
+    whiteElem.replaceChildren();
+    redElem.replaceChildren();
+
+    battleElem.style.display = 'none';
+    battleCanvasElem.style.display = 'none';
 }
 
 function renderAllCards() {
-    const off = battle.attacker;
+    const off = attacker;
 
     let whiteHand, redHand;
     if (off == 'WHITE') {
@@ -185,7 +183,7 @@ function clickedCard(idx, faction) {
 
     handElem.children[idx].classList.add('selected');
 
-    faction == battle.attacker
+    faction == attacker
         ? selectedIndex.off = idx
         : selectedIndex.def = idx;
 }
@@ -203,7 +201,7 @@ function selectingCard(attacking, button) {
 }
 
 async function dueling() {
-    let [offButton, defButton] = battle.attacker == 'RED'
+    let [offButton, defButton] = attacker == 'RED'
         ? [ document.getElementById('red_button'), 
             document.getElementById('white_button')]
         : [ document.getElementById('white_button'), 
@@ -236,6 +234,8 @@ export async function battling(defPos, offPos) {
 
         updateScore();
     }
+
+    unrenderBattle();
 
     return checkBattleState();
 }
