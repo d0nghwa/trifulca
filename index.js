@@ -1,5 +1,5 @@
 import { 
-    renderBoard, resizeCanvas, initSprites, game, newGame, playing
+    renderBoard, resizeCanvas, initSprites, game, newGame, playing, pushing
 } from "./src/trifulcaMovement.js"
 import { 
     battling

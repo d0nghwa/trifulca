@@ -33,10 +33,10 @@ export class Trifulca {
      *      faction  : string
      *  }[]
      * } chosenTiles    is an array of pieces to be placed:
-     * - 'type' is 'CONQ | DAME | NITE,' corresponding to Conquistador, Dame, 
-     *    or Knight pieces respectively
-     * - 'position' is the coordinates of the pieces on the grid
-     * - 'faction' is the piece's faction, either 'RED' or 'WHITE'
+     *  - 'type' is 'CONQ | DAME | NITE,' corresponding to Conquistador, Dame, 
+     *     or Knight pieces respectively
+     *  - 'position' is the coordinates of the pieces on the grid
+     *  - 'faction' is the piece's faction, either 'RED' or 'WHITE'
      */
     placePieces(chosenTiles) {
         for (const tile of chosenTiles) {
@@ -63,15 +63,13 @@ export class Trifulca {
      *      status : string, 
      *      pos : { r : number, c : number }
      *  }[]
-     * }    an array containing an object literal with two fields:
-     *  - 'status' is denotes the status of the tile that could be moved to:
-     *      - 'EMPTY'   the tile contains no other pieces, and can
-     *                  be moved to
-     *      - 'BLOCKED' there is another piece in between the
-     *                  moving piece and the new tile (only for Conquistador)
+     * }    an array of objects literal with 'position,' the coordinates of the
+     *      tile to push to, and 'status,' the information about the tile:
+     *      - 'EMPTY'   the tile contains no other pieces, and can be moved to
+     *      - 'BLOCKED' there is another piece in between the moving piece and 
+     *                  the new tile, or the piece being attacked is finished
      *      - 'ALLY'    there is an ally piece on the new tile
      *      - 'ENEMY'   there is an enemy piece on the new tile to attack
-     *  - 'position' is the coordinates of the tile, must contain a valid piece
      */
     getMoves(pos) {
         const movingPiece = this.getPiece(pos);
@@ -90,7 +88,9 @@ export class Trifulca {
                 valid.status = 'EMPTY';
             else if (targetPiece.faction == movingPiece.faction)
                 valid.status = 'ALLY';
-            else 
+            else if (targetPiece.status === 'FINISHED') 
+                valid.status = 'BLOCKED';
+            else
                 valid.status = 'ENEMY';
 
             // conq cannot 'jump' over other tiles
@@ -105,6 +105,29 @@ export class Trifulca {
         return validTiles;
     }
 
+    /**
+     * Obtains the tiles that can be pushed to from a given tile
+     * @param {
+     *  {
+     *      r : number,
+     *      c : number
+     *  }
+     * } pos  the position of the given piece
+     * 
+     * @returns {
+     *  {
+     *      status : string, 
+     *      pos : { r : number, c : number }
+     *  }[]
+     * }    an array of objects literal with 'position,' the coordinates of the
+     *      tile to push to, and 'status,' the information about the tile:
+     *      - 'EMPTY'   the tile contains no other pieces, and can be pushed to
+     *      - 'BLOCKED' there is another piece in between the pushed piece and 
+     *                  the new tile (only for Conquistador)
+     *      - 'ALLY'    there is an ally piece on the new tile
+     *      - 'ENEMY'   there is an enemy piece on the new tile to attack
+     *      - 'OUT'     the tile to be pushed to is off the grid
+     */
     getPushes(pos) {
         const pushingPiece = this.getPiece(pos);
         const pushableTiles = pushingPiece.getPushableTiles();
@@ -135,7 +158,8 @@ export class Trifulca {
             // CONQ can only be pushed row-wise, hence it can only be blocked 
             // row-wise
             if (pushingPiece.type == 'CONQ' && 
-                (pos.r > 0 && pos.r < 6) &&
+                pos.r > 0 && 
+                pos.r < 6 &&
                 this.board[(pushable.r + pos.r) >> 1][pushable.c] !== null
             ) {
                 push.status = 'BLOCKED';
@@ -194,6 +218,26 @@ export class Trifulca {
         this.board[newPos.r][newPos.c] = piece;
 
         piece.position = newPos;
+
+        if (
+            (piece.position.r == 0 && piece.faction === 'RED') ||
+            (piece.position.c == 6 && piece.faction === 'WHITE')
+        ) {
+            piece.status = 'FINISHED';
+        }
+    }
+
+    removePiece(piece) {
+        this.board[piece.position.r][piece.position.c] = null;
+
+        piece.status = 'DEFEATED';
+        piece.position = null;
+    }
+
+    pushPiece(piece, newPos) {
+        this.movePiece(piece, newPos);
+
+        piece.status = 'STUNNED';
     }
 
     nextTurn() {

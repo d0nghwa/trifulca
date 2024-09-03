@@ -14,6 +14,9 @@ const turnIndicator = document.getElementById('turn_indicator');
 const MOVEABLETILE   = 'rgb(0 128 0 / 50%)';
 const BLOCKEDTILE    = 'rgb(0 0 0 / 50%)';
 const ATTACKABLETILE = 'rgb(255 0 0 / 50%)';
+const OUTTILE        = 'rgb(139 0 0 / 50%)';
+
+const FINISHED       = 'rgb(255 215 0 / 75%)';
 
 const sprites = {
     RED : {
@@ -48,12 +51,12 @@ export function newGame() {
  * Returns the position of the tile that is clicked
  * @param {number} mx   is the client event's window relative x-coord
  * @param {number} my   is the client event's window relative y-coord
- * @returns {{r: number, c: number}}    the position of the clicked tile in
- *  [row, column] format
+ * @returns {{r: number, c: number}}    the grid position of the clicked 
+ *  tile, which is 0 <= r <= 6 and 0 <= c <= 4 for the positions of the valid
+ *  grid tiles, and -1 and 7 representing the border tiles' positions
  */
 function getTile(mx, my) {
     let border = width / 32;
-    let tileSize = width * (6 / 32);
     
     // position relative to top-left corner of grid
     let t = board.getBoundingClientRect();
@@ -63,7 +66,8 @@ function getTile(mx, my) {
     // grid dimensions
     let gw = width - 2 * border;
     let gh = height - 2 * border;
-
+    
+    let tileSize = width * (6 / 32);
     return {
         r: ry < 0 ? -1 : ry >= gh ? 7 : Math.floor(ry / tileSize),
         c: rx < 0 ? -1 : rx >= gw ? 5 : Math.floor(rx / tileSize)
@@ -71,13 +75,9 @@ function getTile(mx, my) {
 }
 
 function getRelativePos(tile) {
-    let t = board.getBoundingClientRect();
-    let border = t.width / 32;
-    let tileSize = t.width * (6 / 32);
-    
     return {
-        x : tile.c * tileSize + border,
-        y : tile.r * tileSize + border
+        x : tile.c < 0 ? 0 : width / 32 * (tile.c * 6 + 1),
+        y : tile.r < 0 ? 0 : width / 32 * (tile.r * 6 + 1)
     };
 }
 
@@ -99,6 +99,7 @@ export async function playing() {
 
         let move = selectMove();
 
+        /** @see moving()   for event removal */
         overlays.addEventListener('click', renderMoves);
 
         await moving(await move);
@@ -106,40 +107,111 @@ export async function playing() {
         renderBoard();
         renderMoves();
 
-        overlays.removeEventListener('click', renderMoves);
-
         game.nextTurn();
     }
 }
 
 async function moving(move) {
-    if (move.status === 'ENEMY') {
-        let offPos = move.piece.position;
-        let defPos = move.pos;
-        let result = await battling(defPos, offPos);
-        
-        console.log(result);
+    overlays.removeEventListener('click', renderMoves);
 
+    const piece = move.piece;
+    if (move.status === 'ENEMY') {
+        let [offPos, defPos] = [piece.position, move.pos]
+        let result = await battling(defPos, offPos);
+
+        renderMoves();
+
+        await pushing(result === 'OFFVICTORY' ? defPos : offPos);
         if (result === 'OFFVICTORY') {
-            // defender pushed back
-            // move offensive piece
-            // defensive piece stunned
-            // check pushed off
-        } else {
-            // offender pushed back
-            // offensive piece stunned
-            // check pushed off
+            game.movePiece(piece, defPos);
         }
-    } else {
-        movePiece(move.piece, move.pos);
-        // check if finished/won
+    } else if (move.status === 'EMPTY') {
+        movePiece(piece, move.pos);
     }
 }
 
-async function pushing(tile) {
-    // render possible pushes
-    // get click
-    // 
+export async function pushing(tile) {
+    let pushes = game.getPushes(tile);
+
+    renderPushes(pushes);
+    
+    let push = await selectPush(pushes);
+    
+    pushPiece(tile, push);
+}
+
+function pushPiece(tile, push) {
+    let piece = game.getPiece(tile);
+
+    switch (push.status) {
+        case 'OUT':
+            game.removePiece(piece);
+            break;
+        case 'EMPTY':
+            game.pushPiece(piece, push.pos);
+    }
+}
+
+function renderPushes(pushes) {
+    for (const push of pushes) {
+        let pos = push.pos;
+        let windowPos = getRelativePos(pos);
+    
+        switch (push.status) {
+            case 'EMPTY':
+                overlayCanvas.fillStyle = MOVEABLETILE;
+                break;
+            case 'OUT':
+                overlayCanvas.fillStyle = OUTTILE;
+                break;
+            case 'BLOCKED':
+            case 'ALLY':
+            case 'ENEMY':
+                overlayCanvas.fillStyle = BLOCKEDTILE;
+        }
+    
+        let bs = width / 32;
+        let ts = bs * 6;
+        overlayCanvas.fillRect(
+            windowPos.x, windowPos.y,
+            pos.c < 0 || pos.c > 4 ? bs : ts,
+            pos.r < 0 || pos.r > 6 ? bs : ts
+        );
+    }
+}
+
+function getSelectedPushStatus(tile, pushes) {
+    for (const push of pushes) {
+        if (tile.r === push.pos.r && tile.c === push.pos.c)
+            return push.status;
+    }
+    return 'UNREACHABLE';
+}
+
+function selectPush(pushes) {
+    return new Promise((resolve, reject) => {
+        // need to keep a reference to both selectMoveEvent and resolve
+        overlays.addEventListener('click', function selectPushEvent(event) {
+            const tile = getTile(event.clientX, event.clientY);
+
+            const push = {
+                pos : tile,
+                status : getSelectedPushStatus(tile, pushes)
+            }
+
+            switch (push.status) {
+                case 'UNREACHABLE' :
+                case 'ALLY' :
+                case 'BLOCKED' :
+                case 'ENEMY' :
+                    break;
+                case 'OUT' :
+                case 'EMPTY' :
+                    resolve(push);
+                    overlays.removeEventListener('click', selectPushEvent);
+            }
+        });
+    });
 }
 
 function selectMove() {
@@ -295,13 +367,27 @@ export function renderBoard() {
 
 function renderPieces(pieces) {
     for (const piece of pieces) {
+        if (piece.status === 'DEFEATED')
+            continue;
+
         const pos = getRelativePos(piece.position);
 
+        if (piece.status === 'FINISHED')
+            renderPieceStatus(pos, FINISHED);
+        
         let tileSize = width * (6 / 32);
 
         let img = sprites[piece.faction][piece.type];
         piecesCanvas.drawImage(img, pos.x, pos.y, tileSize, tileSize);
     }
+}
+
+function renderPieceStatus(pos, style) {
+    let ts = width * 6 / 32;
+    let ls = ts / 12;
+    piecesCanvas.strokeStyle = style; 
+    piecesCanvas.lineWidth = ls;
+    piecesCanvas.strokeRect(pos.x + ls / 2, pos.y + ls / 2, ts - ls, ts - ls);
 }
 
 export function resizeCanvas() {
